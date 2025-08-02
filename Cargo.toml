@@ -1,0 +1,28 @@
+[package]
+name = "memscan"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+fltk = "1"
+lazy_static = "1"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+opt-level = 1
+debug = true
+overflow-checks = true
+
+[profile.release-small]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
