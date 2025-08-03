@@ -247,28 +247,10 @@ scoop install memscan
 
 ### Linux Permissions
 
-#### Option 1: Capabilities (Recommended)
-```bash
-# Add ptrace capability to binary
-sudo setcap cap_sys_ptrace=eip $(which memscan)
-
-# Verify capabilities
-getcap $(which memscan)
-```
-
-#### Option 2: Sudo Access
+#### Sudo Access
 ```bash
 # Run with sudo when needed
 sudo memscan
-```
-
-#### Option 3: Add to ptrace_scope (Temporary)
-```bash
-# Allow ptrace for current session
-echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
-
-# To make permanent, add to /etc/sysctl.d/10-ptrace.conf:
-# kernel.yama.ptrace_scope = 0
 ```
 
 ### macOS Permissions
