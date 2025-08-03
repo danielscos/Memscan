@@ -252,10 +252,31 @@ fn main() {
         let mut results_list = results_list.clone();
 
         scan_btn.set_callback(move |_| {
-            status_frame.set_label("Scanning..");
-            results_list.clear();
-            results_list.add("Memory scanning feature in development");
-            results_list.add("Will search for values in target process memory");
+            if let Some(ref process) = state.borrow().selected_process {
+                if let Some(ref handle) = process.handle {
+                    match handle.get_scannable_regions() {
+                        Ok(regions) => {
+                            results_list.clear();
+                            for region in regions.iter().take(10) {
+                                results_list.add(&format!(
+                                    "0x{:X}-0x{:X} ({}KB) r{} w{} x{}",
+                                    region.start_address,
+                                    region.start_address + region.size,
+                                    region.size / 1024,
+                                    if region.readable { "+" } else { "-" },
+                                    if region.writable { "+" } else { "-" },
+                                    if region.executable { "+" } else { "-" },
+                                ));
+                            }
+                            status_frame
+                                .set_label(&format!("Found {} memory regions", regions.len()));
+                        }
+                        Err(e) => {
+                            status_frame.set_label(&format!("failed to get memory regions: {}", e));
+                        }
+                    }
+                }
+            }
 
             status_frame.redraw();
             results_list.redraw();
