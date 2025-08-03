@@ -142,11 +142,11 @@ Memscan should only be used on:
 
 | Feature | Linux | macOS | Windows | Status |
 |---------|-------|-------|---------|---------|
-| Process Enumeration | ✅ | 🚧 | 🚧 | Implemented |
-| Process Attachment | ✅ | 🚧 | 🚧 | Implemented |
-| Memory Reading | 🚧 | 🚧 | 🚧 | In Development |
-| Value Scanning | 🚧 | 🚧 | 🚧 | Planned |
-| Memory Writing | 🚧 | 🚧 | 🚧 | Planned |
+| Process Enumeration | ✅ | ❌️ | ❌️ | Implemented |
+| Process Attachment | ✅ | ❌️ | ❌️ | Implemented |
+| Memory Reading | ❌️ | ❌️ | ❌️ | In Development |
+| Value Scanning | ❌️ | ❌️ | ❌️ | Planned |
+| Memory Writing | ❌️ | ❌️ | ❌️ | Planned |
 
 ## Troubleshooting
 
