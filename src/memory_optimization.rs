@@ -1,8 +1,8 @@
 // memory optimization for FLTK
 //
 use std::alloc::{GlobalAlloc, Layout, System};
-use std::fmt::format;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Mutex;
 
 // custom alloc
 pub struct TrackingAllocator;
@@ -35,26 +35,25 @@ pub fn get_allocated_bytes() -> usize {
     ALLOCATED.load(Ordering::SeqCst)
 }
 
-use std::sync::Mutex;
-
+// additional tracking
 lazy_static::lazy_static! {
-    static ref MEMORY_USAGE: Mutex<usize> = Mutex::new(0);
+    static ref APP_MEMORY_USAGE: Mutex<usize> = Mutex::new(0);
 }
 
 pub fn track_allocation(size: usize) {
-    if let Ok(mut usage) = MEMORY_USAGE.lock() {
+    if let Ok(mut usage) = APP_MEMORY_USAGE.lock() {
         *usage += size;
     }
 }
 
 pub fn track_deallocation(size: usize) {
-    if let Ok(mut usage) = MEMORY_USAGE.lock() {
+    if let Ok(mut usage) = APP_MEMORY_USAGE.lock() {
         *usage = usage.saturating_sub(size);
     }
 }
 
 pub fn get_tracked_memory() -> usize {
-    match MEMORY_USAGE.lock() {
+    match APP_MEMORY_USAGE.lock() {
         Ok(usage) => *usage,
         Err(_) => 0,
     }
@@ -86,10 +85,34 @@ impl<T> ObjectPool<T> {
     }
 }
 
-pub fn get_memory_stats() -> (usize, usize) {
-    let allocated = get_allocated_bytes();
-    let tracked = get_tracked_memory();
-    (allocated, tracked)
+pub struct MemoryMonitor {
+    max_allowed: usize,
+}
+
+impl MemoryMonitor {
+    pub fn new(max_mb: usize) -> Self {
+        Self {
+            max_allowed: max_mb * 1024 * 1024,
+        }
+    }
+
+    pub fn check_limit(&self) -> Result<(), String> {
+        let current = get_allocated_bytes();
+        if current > self.max_allowed {
+            Err(format!(
+                "Memory limit exceeded: {:.1}MB > {:.1}MB",
+                current as f64 / (1024.0 * 1024.0),
+                self.max_allowed as f64 / (1024.0 * 1024.0)
+            ))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn get_usage_percentage(&self) -> f64 {
+        let current = get_allocated_bytes();
+        (current as f64 / self.max_allowed as f64) * 100.0
+    }
 }
 
 pub fn format_bytes(bytes: usize) -> String {
