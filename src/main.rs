@@ -4,7 +4,6 @@
 use fltk::{
     app, browser::Browser, button::Button, frame::Frame, input::Input, prelude::*, window::Window,
 };
-use libc::NEW_TIME;
 use std::{cell::RefCell, rc::Rc};
 
 mod memory;
@@ -106,11 +105,26 @@ fn main() {
     let mut value_input = Input::new(10, 430, 150, 30, "");
     value_input.set_value("0");
 
-    let mut scan_btn = Frame::new(170, 400, 100, 30, "Start Scan");
+    let mut scan_btn = Button::new(170, 430, 100, 30, "Start Scan");
     scan_btn.deactivate(); // enable after attachment
 
-    let mut scan_type_label = Frame::new(280, 405, 200, 20, "Type: Integer (4 bytes)");
-    scan_type_label.set_align(fltk::enums::Align::Left | fltk::enums::Align::Inside);
+    let mut scan_type_btn = Button::new(280, 405, 150, 25, "Type: i32 (4 bytes)");
+    let scan_types = vec!["i32 (4 bytes)", "i64 (8 bytes)", "f32 (4 bytes)", "String"];
+    let scan_type_index = Rc::new(RefCell::new(0));
+
+    {
+        let scan_type_index = scan_type_index.clone();
+        let scan_types = scan_types.clone();
+        let mut scan_type_btn = scan_type_btn.clone();
+
+        scan_type_btn.set_callback(move |btn| {
+            let mut index = scan_type_index.borrow_mut();
+            *index = (*index + 1) % scan_types.len();
+            btn.set_label(&format!("Type: {}", scan_types[*index]));
+            println!("Scan type changed to: {}", scan_types[*index]);
+            btn.redraw();
+        });
+    }
 
     // results
     let mut results_section = Frame::new(10, 440, 300, 25, "Scan Results:");
@@ -118,7 +132,7 @@ fn main() {
     results_section.set_label_color(fltk::enums::Color::Black);
     results_section.set_align(fltk::enums::Align::Left | fltk::enums::Align::Inside);
 
-    let mut results_list = Browser::new(10, 470, 600, 80, "");
+    let results_list = Browser::new(10, 470, 600, 80, "");
 
     // status and controls
     let mut status_frame = Frame::new(10, 560, 600, 25, "ready - click 'list processes' to begin");
@@ -248,31 +262,101 @@ fn main() {
     }
 
     {
+        let state = state.clone();
         let mut status_frame = status_frame.clone();
         let mut results_list = results_list.clone();
+        let value_input = value_input.clone();
+        let scan_type_index = scan_type_index.clone();
 
         scan_btn.set_callback(move |_| {
+            let search_value = value_input.value();
+            let selected_type = *scan_type_index.borrow();
+
+            if search_value.is_empty() {
+                status_frame.set_label("Please enter a value to search for");
+                status_frame.redraw();
+                return;
+            }
+
             if let Some(ref process) = state.borrow().selected_process {
                 if let Some(ref handle) = process.handle {
                     match handle.get_scannable_regions() {
                         Ok(regions) => {
                             results_list.clear();
-                            for region in regions.iter().take(10) {
-                                results_list.add(&format!(
-                                    "0x{:X}-0x{:X} ({}KB) r{} w{} x{}",
-                                    region.start_address,
-                                    region.start_address + region.size,
-                                    region.size / 1024,
-                                    if region.readable { "+" } else { "-" },
-                                    if region.writable { "+" } else { "-" },
-                                    if region.executable { "+" } else { "-" },
-                                ));
+                            let mut found_count = 0;
+
+                            // Use the selected type in your search
+                            match selected_type {
+                                0 => {
+                                    // i32
+                                    if let Ok(target_value) = search_value.parse::<i32>() {
+                                        status_frame.set_label(&format!(
+                                            "Searching for i32 value: {}",
+                                            target_value
+                                        ));
+                                        for region in regions.iter().take(5) {
+                                            let chunk_size = 4096;
+                                            for addr in (region.start_address
+                                                ..region.start_address
+                                                    + region.size.min(chunk_size))
+                                                .step_by(4)
+                                            {
+                                                if let Ok(value) = handle.read_i32(addr) {
+                                                    if value == target_value {
+                                                        results_list.add(&format!(
+                                                            "Found {} at 0x{:X}",
+                                                            value, addr
+                                                        ));
+                                                        found_count += 1;
+                                                        if found_count >= 10 {
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            if found_count >= 10 {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                1 => {
+                                    // i64
+                                    if let Ok(target_value) = search_value.parse::<i64>() {
+                                        status_frame.set_label(&format!(
+                                            "Searching for i64 value: {}",
+                                            target_value
+                                        ));
+                                        results_list.add("i64 search not implemented yet");
+                                        found_count = 1;
+                                    }
+                                }
+                                2 => {
+                                    // f32
+                                    if let Ok(target_value) = search_value.parse::<f32>() {
+                                        status_frame.set_label(&format!(
+                                            "Searching for f32 value: {}",
+                                            target_value
+                                        ));
+                                        results_list.add("f32 search not implemented yet");
+                                        found_count = 1;
+                                    }
+                                }
+                                _ => {
+                                    // String
+                                    status_frame.set_label("String search not implemented yet");
+                                    results_list.add("String search coming soon");
+                                    found_count = 1;
+                                }
                             }
-                            status_frame
-                                .set_label(&format!("Found {} memory regions", regions.len()));
+
+                            status_frame.set_label(&format!(
+                                "Search complete. Found {} matches",
+                                found_count
+                            ));
                         }
                         Err(e) => {
-                            status_frame.set_label(&format!("failed to get memory regions: {}", e));
+                            status_frame.set_label(&format!("Search failed: {}", e));
                         }
                     }
                 }

@@ -1,7 +1,10 @@
 // process management
 // built by the goat (danielscos)
 
-use crate::memory::{MemoryReader, MemoryRegion};
+use crate::{
+    memory::{MemoryReader, MemoryRegion},
+    process,
+};
 use std::fmt;
 
 #[derive(Debug, Clone)]
@@ -112,6 +115,7 @@ pub fn enumerate_processes() -> Result<Vec<Process>, Box<dyn std::error::Error>>
     use std::fs;
 
     let mut processes = Vec::new();
+    let current_uid = unsafe { libc::getuid() };
 
     for entry in fs::read_dir("/proc")? {
         let entry = entry?;
@@ -124,14 +128,23 @@ pub fn enumerate_processes() -> Result<Vec<Process>, Box<dyn std::error::Error>>
             let comm_path = format!("/proc/{}/comm", pid);
             if let Ok(comm) = fs::read_to_string(&comm_path) {
                 let process_name = comm.trim().to_string();
-                if !process_name.is_empty() {
-                    processes.push(Process::new(pid, process_name));
+                if process_name.is_empty() || process_name.starts_with('[') {
+                    continue;
+                }
+
+                let status_path = format!("/proc/{}/status", pid);
+                if std::path::Path::new(&status_path).exists() {
+                    let maps_path = format!("/proc/{}/maps", pid);
+                    if std::path::Path::new(&maps_path).exists() {
+                        processes.push(Process::new(pid, process_name));
+                    }
                 }
             }
         }
     }
 
     processes.sort_by(|a, b| a.name.cmp(&b.name));
+    processes.truncate(100);
 
     Ok(processes)
 }
