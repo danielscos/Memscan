@@ -1,10 +1,7 @@
 // process management
 // built by the goat (danielscos)
 
-use crate::{
-    memory::{MemoryReader, MemoryRegion},
-    process,
-};
+use crate::memory::{MemoryReader, MemoryRegion};
 use std::fmt;
 
 #[derive(Debug, Clone)]
@@ -49,6 +46,17 @@ impl ProcessHandle {
     pub fn read_i32(&self, address: usize) -> Result<i32, std::io::Error> {
         if let Some(ref reader) = self.memory_reader {
             reader.read_value::<i32>(address)
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::NotConnected,
+                "Process not attached",
+            ))
+        }
+    }
+
+    pub fn read_value<T: Copy>(&self, address: usize) -> Result<T, std::io::Error> {
+        if let Some(ref reader) = self.memory_reader {
+            reader.read_value::<T>(address)
         } else {
             Err(std::io::Error::new(
                 std::io::ErrorKind::NotConnected,
@@ -115,7 +123,7 @@ pub fn enumerate_processes() -> Result<Vec<Process>, Box<dyn std::error::Error>>
     use std::fs;
 
     let mut processes = Vec::new();
-    let current_uid = unsafe { libc::getuid() };
+    let _current_uid = unsafe { libc::getuid() };
 
     for entry in fs::read_dir("/proc")? {
         let entry = entry?;

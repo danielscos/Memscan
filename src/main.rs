@@ -109,7 +109,13 @@ fn main() {
     scan_btn.deactivate(); // enable after attachment
 
     let mut scan_type_btn = Button::new(280, 405, 150, 25, "Type: i32 (4 bytes)");
-    let scan_types = vec!["i32 (4 bytes)", "i64 (8 bytes)", "f32 (4 bytes)", "String"];
+    let scan_types = vec![
+        "i32 (4 bytes)",
+        "i64 (8 bytes)",
+        "f32 (4 bytes)",
+        "f64 (8 bytes)",
+        "String",
+    ];
     let scan_type_index = Rc::new(RefCell::new(0));
 
     {
@@ -338,12 +344,70 @@ fn main() {
                                             "Searching for f32 value: {}",
                                             target_value
                                         ));
-                                        results_list.add("f32 search not implemented yet");
-                                        found_count = 1;
+
+                                        for region in regions.iter().take(5) {
+                                            let chunk_size = 4096;
+                                            for addr in (region.start_address
+                                                ..region.start_address
+                                                    + region.size.min(chunk_size))
+                                                .step_by(4)
+                                            // 4-byte alignment for f32
+                                            {
+                                                if let Ok(value) = handle.read_value::<f32>(addr) {
+                                                    if (value - target_value).abs() < 0.001 {
+                                                        results_list.add(&format!(
+                                                            "Found {:.3} at 0x{:X}",
+                                                            value, addr
+                                                        ));
+                                                        found_count += 1;
+                                                        if found_count >= 10 {
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            if found_count >= 10 {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                3 => {
+                                    // f64
+                                    if let Ok(target_value) = search_value.parse::<f64>() {
+                                        status_frame.set_label(&format!(
+                                            "searchin for f64 value: {}",
+                                            target_value
+                                        ));
+
+                                        for region in regions.iter().take(5) {
+                                            let chunk_size = 4096;
+                                            for addr in (region.start_address
+                                                ..region.start_address
+                                                    + region.size.min(chunk_size))
+                                                .step_by(8)
+                                            {
+                                                if let Ok(value) = handle.read_value::<f64>(addr) {
+                                                    if (value - target_value).abs() < 0.0001 {
+                                                        results_list.add(&format!(
+                                                            "found {:.4} at 0x{:X}",
+                                                            value, addr
+                                                        ));
+                                                        found_count += 1;
+                                                        if found_count >= 10 {
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            if found_count >= 10 {
+                                                break;
+                                            }
+                                        }
                                     }
                                 }
                                 _ => {
-                                    // String
+                                    // string
                                     status_frame.set_label("String search not implemented yet");
                                     results_list.add("String search coming soon");
                                     found_count = 1;
