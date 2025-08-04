@@ -9,7 +9,6 @@ use std::fmt;
 #[derive(Debug, Clone)]
 pub struct ScanResult {
     pub address: usize,
-    pub value: Vec<u8>,
 }
 
 // custom error type
@@ -118,10 +117,18 @@ fn scan_region(
             Ok(chunk) => {
                 // search for target avalue in chunk
                 let chunk_results = search_bytes_in_chunk(&chunk, target_bytes, current_address);
+                if !chunk_results.is_empty() {
+                    println!(
+                        "   🎯 Found {} matches in chunk at 0x{:x}",
+                        chunk_results.len(),
+                        current_address
+                    );
+                }
                 results.extend(chunk_results);
             }
-            Err(_) => {
-                // chunk prolly jst unreadable, skip
+            Err(e) => {
+                // Log memory read errors for debugging
+                println!("   ⚠️  Memory read error at 0x{:x}: {}", current_address, e);
             }
         }
 
@@ -141,10 +148,9 @@ fn search_bytes_in_chunk(
 
     for i in 0..chunk.len().saturating_sub(target_bytes.len() - 1) {
         // check if bytes at position i match target
-        if chunk[1..i + target_bytes.len()] == *target_bytes {
+        if chunk[i..i + target_bytes.len()] == *target_bytes {
             results.push(ScanResult {
                 address: base_address + i,
-                value: target_bytes.to_vec(),
             });
         }
     }
@@ -152,13 +158,282 @@ fn search_bytes_in_chunk(
     results
 }
 
-pub fn scan_process_for_value(
+// i64 scanning
+pub fn scan_for_i64(
+    process_handle: &ProcessHandle,
+    target_value: i64,
+) -> Result<Vec<ScanResult>, ScanError> {
+    println!("🔍 Scanning for i64 value: {}", target_value);
+
+    let regions = process_handle
+        .get_scannable_regions()
+        .map_err(ScanError::MemoryReadError)?;
+
+    if regions.is_empty() {
+        return Err(ScanError::NoMemoryRegions);
+    }
+
+    println!("📍 Found {} scannable memory regions", regions.len());
+
+    let target_bytes = target_value.to_le_bytes();
+    let mut results = Vec::new();
+
+    for (region_index, region) in regions.iter().enumerate() {
+        println!(
+            "🔄 Scanning region {}/{}: 0x{:x} (size: {} KB)",
+            region_index + 1,
+            regions.len(),
+            region.start_address,
+            region.size / 1024
+        );
+
+        match scan_region(process_handle, region, &target_bytes) {
+            Ok(mut region_results) => {
+                if region_results.is_empty() {
+                    println!("   ✅ Found 0 matches in this region");
+                } else {
+                    println!(
+                        "   🎯 Found {} matches in this region",
+                        region_results.len()
+                    );
+                }
+                results.append(&mut region_results);
+            }
+            Err(e) => {
+                println!("   ⚠️  Error scanning region: {}", e);
+                continue;
+            }
+        }
+
+        if results.len() > 10000 {
+            println!("🛑 Reached maximum results limit (10,000), stopping scan");
+            break;
+        }
+    }
+
+    println!("🎯 Scan complete! Found {} total matches", results.len());
+    Ok(results)
+}
+
+// f32 scanning
+pub fn scan_for_f32(
+    process_handle: &ProcessHandle,
+    target_value: f32,
+) -> Result<Vec<ScanResult>, ScanError> {
+    println!("🔍 Scanning for f32 value: {}", target_value);
+
+    let regions = process_handle
+        .get_scannable_regions()
+        .map_err(ScanError::MemoryReadError)?;
+
+    if regions.is_empty() {
+        return Err(ScanError::NoMemoryRegions);
+    }
+
+    println!("📍 Found {} scannable memory regions", regions.len());
+
+    let target_bytes = target_value.to_le_bytes();
+    let mut results = Vec::new();
+
+    for (region_index, region) in regions.iter().enumerate() {
+        println!(
+            "🔄 Scanning region {}/{}: 0x{:x} (size: {} KB)",
+            region_index + 1,
+            regions.len(),
+            region.start_address,
+            region.size / 1024
+        );
+
+        match scan_region(process_handle, region, &target_bytes) {
+            Ok(mut region_results) => {
+                if region_results.is_empty() {
+                    println!("   ✅ Found 0 matches in this region");
+                } else {
+                    println!(
+                        "   🎯 Found {} matches in this region",
+                        region_results.len()
+                    );
+                }
+                results.append(&mut region_results);
+            }
+            Err(e) => {
+                println!("   ⚠️  Error scanning region: {}", e);
+                continue;
+            }
+        }
+
+        if results.len() > 10000 {
+            println!("🛑 Reached maximum results limit (10,000), stopping scan");
+            break;
+        }
+    }
+
+    println!("🎯 Scan complete! Found {} total matches", results.len());
+    Ok(results)
+}
+
+// f64 scanning
+pub fn scan_for_f64(
+    process_handle: &ProcessHandle,
+    target_value: f64,
+) -> Result<Vec<ScanResult>, ScanError> {
+    println!("🔍 Scanning for f64 value: {}", target_value);
+
+    let regions = process_handle
+        .get_scannable_regions()
+        .map_err(ScanError::MemoryReadError)?;
+
+    if regions.is_empty() {
+        return Err(ScanError::NoMemoryRegions);
+    }
+
+    println!("📍 Found {} scannable memory regions", regions.len());
+
+    let target_bytes = target_value.to_le_bytes();
+    let mut results = Vec::new();
+
+    for (region_index, region) in regions.iter().enumerate() {
+        println!(
+            "🔄 Scanning region {}/{}: 0x{:x} (size: {} KB)",
+            region_index + 1,
+            regions.len(),
+            region.start_address,
+            region.size / 1024
+        );
+
+        match scan_region(process_handle, region, &target_bytes) {
+            Ok(mut region_results) => {
+                if region_results.is_empty() {
+                    println!("   ✅ Found 0 matches in this region");
+                } else {
+                    println!(
+                        "   🎯 Found {} matches in this region",
+                        region_results.len()
+                    );
+                }
+                results.append(&mut region_results);
+            }
+            Err(e) => {
+                println!("   ⚠️  Error scanning region: {}", e);
+                continue;
+            }
+        }
+
+        if results.len() > 10000 {
+            println!("🛑 Reached maximum results limit (10,000), stopping scan");
+            break;
+        }
+    }
+
+    println!("🎯 Scan complete! Found {} total matches", results.len());
+    Ok(results)
+}
+
+// String scanning (ASCII)
+pub fn scan_for_string(
+    process_handle: &ProcessHandle,
+    target_value: &str,
+) -> Result<Vec<ScanResult>, ScanError> {
+    println!("🔍 Scanning for string: '{}'", target_value);
+
+    if target_value.is_empty() {
+        return Err(ScanError::InvalidValue);
+    }
+
+    let regions = process_handle
+        .get_scannable_regions()
+        .map_err(ScanError::MemoryReadError)?;
+
+    if regions.is_empty() {
+        return Err(ScanError::NoMemoryRegions);
+    }
+
+    println!("📍 Found {} scannable memory regions", regions.len());
+
+    let target_bytes = target_value.as_bytes();
+    let mut results = Vec::new();
+
+    for (region_index, region) in regions.iter().enumerate() {
+        println!(
+            "🔄 Scanning region {}/{}: 0x{:x} (size: {} KB)",
+            region_index + 1,
+            regions.len(),
+            region.start_address,
+            region.size / 1024
+        );
+
+        match scan_region(process_handle, region, target_bytes) {
+            Ok(mut region_results) => {
+                if region_results.is_empty() {
+                    println!("   ✅ Found 0 matches in this region");
+                } else {
+                    println!(
+                        "   🎯 Found {} matches in this region",
+                        region_results.len()
+                    );
+                }
+                results.append(&mut region_results);
+            }
+            Err(e) => {
+                println!("   ⚠️  Error scanning region: {}", e);
+                continue;
+            }
+        }
+
+        if results.len() > 10000 {
+            println!("🛑 Reached maximum results limit (10,000), stopping scan");
+            break;
+        }
+    }
+
+    println!("🎯 Scan complete! Found {} total matches", results.len());
+    Ok(results)
+}
+
+// Typed scanning functions for different data types
+pub fn scan_process_for_i32(
     process_handle: &ProcessHandle,
     value_str: &str,
 ) -> Result<Vec<ScanResult>, ScanError> {
     let value = value_str
         .parse::<i32>()
         .map_err(|_| ScanError::InvalidValue)?;
-
     scan_for_i32(process_handle, value)
+}
+
+pub fn scan_process_for_i64(
+    process_handle: &ProcessHandle,
+    value_str: &str,
+) -> Result<Vec<ScanResult>, ScanError> {
+    let value = value_str
+        .parse::<i64>()
+        .map_err(|_| ScanError::InvalidValue)?;
+    scan_for_i64(process_handle, value)
+}
+
+pub fn scan_process_for_f32(
+    process_handle: &ProcessHandle,
+    value_str: &str,
+) -> Result<Vec<ScanResult>, ScanError> {
+    let value = value_str
+        .parse::<f32>()
+        .map_err(|_| ScanError::InvalidValue)?;
+    scan_for_f32(process_handle, value)
+}
+
+pub fn scan_process_for_f64(
+    process_handle: &ProcessHandle,
+    value_str: &str,
+) -> Result<Vec<ScanResult>, ScanError> {
+    let value = value_str
+        .parse::<f64>()
+        .map_err(|_| ScanError::InvalidValue)?;
+    scan_for_f64(process_handle, value)
+}
+
+pub fn scan_process_for_string(
+    process_handle: &ProcessHandle,
+    value_str: &str,
+) -> Result<Vec<ScanResult>, ScanError> {
+    scan_for_string(process_handle, value_str)
 }

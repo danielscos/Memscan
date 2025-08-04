@@ -12,9 +12,9 @@
 // ░                                                                ░
 // built by the goat (danielcos)
 
-use nix::sys::uio::{RemoteIoVec, process_vm_readv, process_vm_writev};
+use nix::sys::uio::{RemoteIoVec, process_vm_readv};
 use nix::unistd::Pid;
-use std::io::{self, IoSlice, IoSliceMut};
+use std::io::{self, IoSliceMut};
 
 #[derive(Debug, Clone)]
 pub struct MemoryRegion {
@@ -57,51 +57,6 @@ impl MemoryReader {
             }
             Err(e) => Err(io::Error::from(e)),
         }
-    }
-
-    // write memory to target process
-    pub fn write_memory(&self, address: usize, data: &[u8]) -> Result<usize, io::Error> {
-        let ioslice = IoSlice::new(data);
-        let local_iov = std::slice::from_ref(&ioslice);
-
-        // create remote IoVec (target process memory)
-        let remote_iov = [RemoteIoVec {
-            base: address,
-            len: data.len(),
-        }];
-
-        // write to target process
-        match process_vm_writev(self.pid, local_iov, &remote_iov) {
-            Ok(bytes_written) => Ok(bytes_written),
-            Err(e) => Err(io::Error::from(e)),
-        }
-    }
-
-    // read a specific type from memory (i32, f64)
-    pub fn read_value<T: Copy>(&self, address: usize) -> Result<T, io::Error> {
-        let size = std::mem::size_of::<T>();
-        let bytes = self.read_memory(address, size)?;
-
-        if bytes.len() < size {
-            return Err(io::Error::new(
-                io::ErrorKind::UnexpectedEof,
-                "Not enough bytes read",
-            ));
-        }
-
-        let value = unsafe { std::ptr::read(bytes.as_ptr() as *const T) };
-
-        Ok(value)
-    }
-
-    // write a specific type to memory
-    pub fn write_value<T: Copy>(&self, address: usize, value: &T) -> Result<(), io::Error> {
-        let bytes = unsafe {
-            std::slice::from_raw_parts(value as *const T as *const u8, std::mem::size_of::<T>())
-        };
-
-        self.write_memory(address, bytes)?;
-        Ok(())
     }
 }
 
@@ -147,19 +102,4 @@ fn parse_maps_line(line: &str) -> Option<MemoryRegion> {
         writable,
         executable,
     })
-}
-
-// filter memory regions by criteria
-pub fn filter_readable_regions(regions: &[MemoryRegion]) -> Vec<&MemoryRegion> {
-    regions.iter().filter(|r| r.readable).collect()
-}
-
-// filter memory regions by size
-pub fn filter_regions_by_size(regions: &[MemoryRegion], min_size: usize) -> Vec<&MemoryRegion> {
-    regions.iter().filter(|r| r.size >= min_size).collect()
-}
-
-// get writable regions only (for memory modification)
-pub fn get_writable_regions(regions: &[MemoryRegion]) -> Vec<&MemoryRegion> {
-    regions.iter().filter(|r| r.writable).collect()
 }

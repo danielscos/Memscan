@@ -68,8 +68,8 @@ git clone https://github.com/yourusername/memscan.git
 cd memscan
 cargo build --release
 
-# Run
-./target/release/memscan
+# Run with automatic privilege handling
+./run_memscan.sh
 ```
 
 ## Build Profiles
@@ -91,28 +91,31 @@ cargo build
 
 ### Basic Usage
 ```bash
-# Run the application
-cargo run
+# Recommended: Use the helper script (handles privileges automatically)
+./run_memscan.sh
 
-# Or use the compiled binary
-./target/release/memscan
+# Alternative: Run directly (may need privileges for memory scanning)
+cargo run
 ```
 
 ### Memory Scanner Workflow
-1. **Launch Memscan**
-2. **Click "List Processes"** to enumerate running processes
-3. **Select target process** from the list
-4. **Click "Attach"** to connect to the process
-5. **Enter value to search** in the input field
-6. **Click "Start Scan"** to find memory addresses
+1. **Start test target**: `./test_target` (in separate terminal)
+2. **Launch Memscan**: `./run_memscan.sh` (confirms privilege adjustment)
+3. **Click "List Processes"** to enumerate running processes
+4. **Select target process** from the list (e.g., "test_target")
+5. **Click "Attach"** to connect to the process
+6. **Enter value to search** in the input field
+7. **Select data type** (i32, i64, f32, f64, String)
+8. **Click "Start Scan"** to find memory addresses
 
 ### Example: Finding a Value
-1. Attach to your target application
-2. Note a specific value (e.g., health points: 100)
-3. Enter "100" in the search field
-4. Click "Start Scan"
-5. Change the value in the target app
-6. Perform filtered scan to narrow results
+1. Start test target: `./test_target`
+2. Launch memscan: `./run_memscan.sh`
+3. Attach to "test_target" process
+4. Enter "12345" in the search field (known test value)
+5. Select "i32 (4 bytes)" as data type
+6. Click "Start Scan" - should find 1-2 matches
+7. Try other test values: "testplayer", "sword", "42.5"
 
 ## Architecture
 
@@ -153,18 +156,22 @@ Memscan should only be used on:
 ### Common Issues
 
 **"Permission denied" when attaching to process:**
-```bash
-# Linux: Run with appropriate permissions
-sudo ./memscan
-```
+- Use the provided script: `./run_memscan.sh`
+- This temporarily adjusts system security settings safely
+- Or run with: `sudo -E env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY ./target/release/memscan`
+
+**"No results found" during scanning:**
+- Ensure the test target is running: `./test_target`
+- Try scanning for known values: 12345, "testplayer", "sword"
+- Check that you're attached to the correct process
 
 **Build fails with FLTK errors:**
 - See [INSTALL.md](INSTALL.md) for platform-specific dependencies
 - Ensure you have a C++ compiler installed
 
-**Memory scanner shows "No processes":**
-- Check if you have permission to read /proc (Linux)
-- Try running as administrator/root
+**GUI doesn't open with sudo:**
+- Use `./run_memscan.sh` instead (better approach)
+- This runs as regular user with temporary security adjustment
 
 For more troubleshooting, see [INSTALL.md](INSTALL.md#troubleshooting).
 

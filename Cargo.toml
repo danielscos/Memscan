@@ -4,6 +4,17 @@ version = "0.1.0"
 edition = "2024"
 authors = ["Danielscos <subtodanielscos10@gmail.com>"]
 description = "High-performance, cross-platform memory scanner"
+default-run = "memscan"
+
+# Multiple binary configuration
+[[bin]]
+name = "memscan-gui"
+path = "src/bin/memscan-gui.rs"
+
+[[bin]]
+name = "memscan-cli"
+path = "src/bin/memscan-cli.rs"
+
 
 [dependencies]
 fltk = "1"

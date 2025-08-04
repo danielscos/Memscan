@@ -18,45 +18,9 @@ pub struct ProcessHandle {
 }
 
 impl ProcessHandle {
-    #[cfg(unix)]
-    fn open(pid: u32) -> Result<Self, Box<dyn std::error::Error>> {
-        let proc_path = format!("/proc/{}", pid);
-        if std::path::Path::new(&proc_path).exists() {
-            let memory_reader = MemoryReader::new(pid);
-            Ok(Self {
-                pid,
-                memory_reader: Some(memory_reader),
-            })
-        } else {
-            Err(format!("process {} no longer exists", pid).into())
-        }
-    }
-
     pub fn read_memory(&self, address: usize, size: usize) -> Result<Vec<u8>, std::io::Error> {
         if let Some(ref reader) = self.memory_reader {
             reader.read_memory(address, size)
-        } else {
-            Err(std::io::Error::new(
-                std::io::ErrorKind::NotConnected,
-                "Process not attached",
-            ))
-        }
-    }
-
-    pub fn read_i32(&self, address: usize) -> Result<i32, std::io::Error> {
-        if let Some(ref reader) = self.memory_reader {
-            reader.read_value::<i32>(address)
-        } else {
-            Err(std::io::Error::new(
-                std::io::ErrorKind::NotConnected,
-                "Process not attached",
-            ))
-        }
-    }
-
-    pub fn read_value<T: Copy>(&self, address: usize) -> Result<T, std::io::Error> {
-        if let Some(ref reader) = self.memory_reader {
-            reader.read_value::<T>(address)
         } else {
             Err(std::io::Error::new(
                 std::io::ErrorKind::NotConnected,
@@ -105,10 +69,6 @@ impl Process {
             Err(format!("Process {} no longer exists", self.pid).into())
         }
     }
-
-    pub fn is_open(&self) -> bool {
-        self.handle.is_some()
-    }
 }
 
 impl fmt::Display for Process {
@@ -152,7 +112,7 @@ pub fn enumerate_processes() -> Result<Vec<Process>, Box<dyn std::error::Error>>
     }
 
     processes.sort_by(|a, b| a.name.cmp(&b.name));
-    processes.truncate(100);
+    processes.truncate(500); // Increased limit to show more processes
 
     Ok(processes)
 }
