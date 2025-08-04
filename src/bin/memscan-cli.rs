@@ -40,7 +40,7 @@ fn main() {
 fn print_version() {
     println!("🔍 Memscan CLI v0.1.0");
     println!("High-performance, cross-platform memory scanner");
-    println!("Built by Danielscos 🐐");
+    println!("Built by Danielscos🐐");
     println!("Memory usage: {} bytes", get_allocated_bytes());
 }
 

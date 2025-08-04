@@ -147,9 +147,9 @@ Memscan should only be used on:
 |---------|-------|-------|---------|---------|
 | Process Enumeration | ✅ | ❌️ | ❌️ | Implemented |
 | Process Attachment | ✅ | ❌️ | ❌️ | Implemented |
-| Memory Reading | ❌️ | ❌️ | ❌️ | In Development |
-| Value Scanning | ❌️ | ❌️ | ❌️ | Planned |
-| Memory Writing | ❌️ | ❌️ | ❌️ | Planned |
+| Memory Reading | ✅ | ❌️ | ❌️ | Implemented |
+| Value Scanning | ✅ | ❌️ | ❌️ | Implemented |
+| Memory Writing | ❌️ | ❌️ | ❌️ | In Development |
 
 ## Troubleshooting
 
@@ -234,5 +234,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
  ░                                                                ░
 ```
 
-**Memscan v0.1.0** - Built by Danielscos 🐐
+**Memscan v0.1.0** - Built by Danielscos
 *High-performance memory scanning for the modern age*
