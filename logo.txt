@@ -1,9 +1,8 @@
-    M
- ,,,M..  `7MMF'   `7MF'               `7MMF'   `7MF'
-'P  M `db, MM       M                   MM       M
-8m._M  `"' MM       M `7M'    ,A    `MF'MM       M
-`YMMM._    MM       M   VA   ,VAA   ,V  MM       M
-   `MYMMb, MM       M    VA ,V  VA ,V   MM       M
-M   M  .M8 YM.     ,M     VVV    VVV    YM.     ,M
-YbmmMmd9'   `bmmmmd"'      W      W      `bmmmmd"'
-    M
+
+ .M"""bgd
+,MI    "Y
+`MMb.      ,p6"bo   ,6"Yb.  `7MMpMMMb.  `7MMpMMMb.  .gP"Ya `7Mb,od8
+  `YMMNq. 6M'  OO  8)   MM    MM    MM    MM    MM ,M'   Yb  MM' "'
+.     `MM 8M        ,pm9MM    MM    MM    MM    MM 8M""""""  MM
+Mb     dM YM.    , 8M   MM    MM    MM    MM    MM YM.    ,  MM
+P"Ybmmd"   YMbmd'  `Moo9^Yo..JMML  JMML..JMML  JMML.`Mbmmd'.JMML.
