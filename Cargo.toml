@@ -20,6 +20,7 @@ path = "src/bin/memscan-cli.rs"
 fltk = "1"
 lazy_static = "1"
 thiserror = "1"
+hex = "0.4.3"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = [

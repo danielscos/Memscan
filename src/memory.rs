@@ -12,9 +12,9 @@
 // ░                                                                ░
 // built by the goat (danielcos)
 
-use nix::sys::uio::{RemoteIoVec, process_vm_readv};
+use nix::sys::uio::{RemoteIoVec, process_vm_readv, process_vm_writev};
 use nix::unistd::Pid;
-use std::io::{self, IoSliceMut};
+use std::io::{self, IoSlice, IoSliceMut};
 
 #[derive(Debug, Clone)]
 pub struct MemoryRegion {
@@ -57,6 +57,70 @@ impl MemoryReader {
             }
             Err(e) => Err(io::Error::from(e)),
         }
+    }
+
+    pub fn write_memory(&self, address: usize, data: &[u8]) -> Result<usize, io::Error> {
+        let ioslice = IoSlice::new(data);
+        let local_iov = std::slice::from_ref(&ioslice);
+
+        let remote_iov = [RemoteIoVec {
+            base: address,
+            len: data.len(),
+        }];
+
+        match process_vm_writev(self.pid, local_iov, &remote_iov) {
+            Ok(bytes_written) => Ok(bytes_written),
+            Err(e) => Err(io::Error::from(e)),
+        }
+    }
+
+    pub fn write_i32(&self, address: usize, value: i32) -> Result<usize, io::Error> {
+        let bytes = value.to_le_bytes();
+        self.write_memory(address, &bytes)
+    }
+
+    pub fn write_i64(&self, address: usize, value: i64) -> Result<usize, io::Error> {
+        let bytes = value.to_le_bytes();
+        self.write_memory(address, &bytes)
+    }
+
+    pub fn write_f32(&self, address: usize, value: f32) -> Result<usize, io::Error> {
+        let bytes = value.to_le_bytes();
+        self.write_memory(address, &bytes)
+    }
+
+    pub fn write_f64(&self, address: usize, value: f64) -> Result<usize, io::Error> {
+        let bytes = value.to_le_bytes();
+        self.write_memory(address, &bytes)
+    }
+
+    pub fn write_string(&self, address: usize, value: &str) -> Result<usize, io::Error> {
+        let bytes = value.as_bytes();
+        self.write_memory(address, bytes)
+    }
+
+    pub fn write_cstring(&self, address: usize, value: &str) -> Result<usize, io::Error> {
+        let mut bytes = value.as_bytes().to_vec();
+        bytes.push(0);
+        self.write_memory(address, &bytes)
+    }
+
+    pub fn read_modify_write<F>(
+        &self,
+        address: usize,
+        size: usize,
+        modifier: F,
+    ) -> Result<Vec<u8>, io::Error>
+    where
+        F: FnOnce(&mut [u8]),
+    {
+        let mut data = self.read_memory(address, size)?;
+
+        modifier(&mut data);
+
+        self.write_memory(address, &data)?;
+
+        Ok(data)
     }
 }
 

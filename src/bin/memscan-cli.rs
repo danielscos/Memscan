@@ -1,6 +1,6 @@
 // Memscan CLI - Command-line memory scanner
 // Usage: memscan-cli <command> [options]
-// Built by the goat (Danielscos)
+// Built by the goat (danielscos)
 
 use memscan::{
     memory_optimization::get_allocated_bytes,
@@ -27,6 +27,8 @@ fn main() {
         "scan" => cmd_scan(&args[2..]),
         "info" => cmd_process_info(&args[2..]),
         "dump" => cmd_dump_memory(&args[2..]),
+        "write" => cmd_write_memory(&args[2..]),
+        "modify" => cmd_modify_value(&args[2..]),
         "help" | "--help" | "-h" => print_usage(),
         "version" | "--version" | "-v" => print_version(),
         _ => {
@@ -416,6 +418,171 @@ fn cmd_dump_memory(args: &[String]) {
         Err(e) => {
             eprintln!("❌ Failed to attach to process: {}", e);
             eprintln!("💡 Try running with: ./run_memscan.sh");
+        }
+    }
+}
+
+fn cmd_write_memory(args: &[String]) {
+    if args.len() < 3 {
+        eprint!("   Usage: memscan-cli write <PID> <ADDRESS> <HEX_DATA>");
+        eprint!("   Example: memscan-cli write 1234 0x7ffff12345678 \"48656c6c6f\"");
+        eprint!("   Example: memscan-cli write 1234 0x7ffff12345678 --string \"Hello\"");
+        process::exit(1);
+    }
+
+    let pid: u32 = match args[0].parse() {
+        Ok(p) => p,
+        Err(_) => {
+            eprint!("   Invalid PID: {}", args[0]);
+            process::exit(1);
+        }
+    };
+
+    let address: usize = if args[1].starts_with("0x") || args[1].starts_with("0x") {
+        usize::from_str_radix(&args[1][2..], 16)
+    } else {
+        args[1].parse()
+    }
+    .unwrap_or_else(|_| {
+        eprint!("   Invalid address: {}", args[1]);
+        process::exit(1);
+    });
+
+    let mut process = Process::new(pid, format!("PID-{}", pid));
+    match process.open() {
+        Ok(()) => {
+            if let Some(handle) = &process.handle {
+                //check if this is a string write
+                if args.len() > 3 && args[2] == "--string" {
+                    let text = &args[3];
+                    match handle.write_string(address, text) {
+                        Ok(bytes_written) => {
+                            println!("  Succesfully wrote {} bytes: \"{}\"", bytes_written, text);
+                            println!("  Address: 0x{:x}", address);
+                        }
+                        Err(e) => {
+                            eprintln!(" Failed to write string: {}", e);
+                        }
+                    }
+                } else {
+                    let hex_data = &args[2];
+                    let hex_clean = hex_data.replace(" ", "").replace("\\x", "");
+
+                    match hex::decode(&hex_clean) {
+                        Ok(data) => match handle.write_memory(address, &data) {
+                            Ok(bytes_written) => {
+                                println!("✅ Successfully wrote {} bytes", bytes_written);
+                                println!("   Address: 0x{:x}", address);
+                                println!("   Data: {}", hex_data);
+                            }
+                            Err(e) => {
+                                eprintln!("❌ Failed to write memory: {}", e);
+                            }
+                        },
+                        Err(_) => {
+                            eprintln!("❌ Invalid hex data: {}", hex_data);
+                            eprintln!("   Use format: \"48656c6c6f\" or \"48 65 6c 6c 6f\"");
+                        }
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("❌ Failed to attach to process: {}", e);
+            eprintln!("💡 Try running with: ./run_memscan.sh");
+        }
+    }
+}
+
+fn cmd_modify_value(args: &[String]) {
+    if args.len() < 4 {
+        eprintln!("   Usage: memscan-cli modify <PID> <ADDRESS> <VALUE> <TYPE>");
+        eprintln!("   Types: i32, i64, f32, f64, string");
+        eprintln!("   Example: memscan-cli modify 1234 0x7fff123456 999 i32");
+        eprintln!("   Example: memscan-cli modify 1234 0x7fff123456 \"newname\" string");
+        process::exit(1);
+    }
+
+    let pid: u32 = match args[0].parse() {
+        Ok(p) => p,
+        Err(_) => {
+            eprintln!(" Invalid PID: {}", args[0]);
+            process::exit(1);
+        }
+    };
+
+    let address: usize = if args[1].starts_with("0x") || args[1].starts_with("0x") {
+        usize::from_str_radix(&args[1][2..], 16)
+    } else {
+        args[1].parse()
+    }
+    .unwrap_or_else(|_| {
+        eprintln!(" Invalid address: {}", args[1]);
+        process::exit(1);
+    });
+
+    let value = &args[2];
+    let value_type = &args[3];
+
+    let mut process = Process::new(pid, format!("PID-{}", pid));
+    match process.open() {
+        Ok(()) => {
+            if let Some(handle) = &process.handle {
+                let result = match value_type.as_str() {
+                    "i32" => {
+                        let val: i32 = value.parse().unwrap_or_else(|_| {
+                            eprintln!(" Invalid i32 value: {}", value);
+                            process::exit(1);
+                        });
+                        handle.write_i32(address, val).map(|_| format!("{}", val))
+                    }
+                    "i64" => {
+                        let val: i64 = value.parse().unwrap_or_else(|_| {
+                            eprintln!(" Invalid i64 value {}", value);
+                            process::exit(1);
+                        });
+                        handle.write_i64(address, val).map(|_| format!("{}", val))
+                    }
+                    "f32" => {
+                        let val: f32 = value.parse().unwrap_or_else(|_| {
+                            eprintln!(" Invalid f32 value: {}", value);
+                            process::exit(1);
+                        });
+                        handle.write_f32(address, val).map(|_| format!("{}", val))
+                    }
+                    "f64" => {
+                        let val: f64 = value.parse().unwrap_or_else(|_| {
+                            eprintln!(" Invalid f64 value: {}", value);
+                            process::exit(1);
+                        });
+                        handle.write_f64(address, val).map(|_| format!("{}", val))
+                    }
+                    "string" => handle
+                        .write_string(address, value)
+                        .map(|_| format!("\"{}\"", value)),
+                    _ => {
+                        eprintln!(" Uknown type: {}", value_type);
+                        eprintln!(" Valid types: i32, i64, f32, f64, string");
+                        process::exit(1);
+                    }
+                };
+
+                match result {
+                    Ok(formatted_value) => {
+                        println!("  Successfully modified memory");
+                        println!("  Address: 0x{:x}", address);
+                        println!("  New value: {} ({})", formatted_value, value_type);
+                    }
+                    Err(e) => {
+                        eprintln!(" Failed to modify memory: {}", e);
+                        eprintln!(" Make sure the memory region is writable");
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!(" Failed to attach to process: {}", e);
+            eprintln!(" Try running with sudo, or run_memscan.sh")
         }
     }
 }

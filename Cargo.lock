@@ -264,6 +264,7 @@ name = "memscan"
 version = "0.1.0"
 dependencies = [
  "fltk",
+ "hex",
  "lazy_static",
  "libc",
  "mach2",

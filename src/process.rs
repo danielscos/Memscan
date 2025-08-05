@@ -2,7 +2,7 @@
 // built by the goat (danielscos)
 
 use crate::memory::{MemoryReader, MemoryRegion};
-use std::fmt;
+use std::fmt::{self, Error};
 
 #[derive(Debug, Clone)]
 pub struct Process {
@@ -27,6 +27,95 @@ impl ProcessHandle {
                 "Process not attached",
             ))
         }
+    }
+
+    pub fn write_memory(&self, address: usize, data: &[u8]) -> Result<usize, std::io::Error> {
+        if let Some(ref reader) = self.memory_reader {
+            reader.write_memory(address, data)
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::NotConnected,
+                "Process not attached",
+            ))
+        }
+    }
+
+    pub fn write_i32(&self, address: usize, value: i32) -> Result<usize, std::io::Error> {
+        if let Some(ref reader) = self.memory_reader {
+            reader.write_i32(address, value)
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::NotConnected,
+                "Process not attached",
+            ))
+        }
+    }
+
+    pub fn write_i64(&self, address: usize, value: i64) -> Result<usize, std::io::Error> {
+        if let Some(ref reader) = self.memory_reader {
+            reader.write_i64(address, value)
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::NotConnected,
+                "Process not attached",
+            ))
+        }
+    }
+
+    pub fn write_f32(&self, address: usize, value: f32) -> Result<usize, std::io::Error> {
+        if let Some(ref reader) = self.memory_reader {
+            reader.write_f32(address, value)
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::NotConnected,
+                "Process not attached",
+            ))
+        }
+    }
+
+    pub fn write_f64(&self, address: usize, value: f64) -> Result<usize, std::io::Error> {
+        if let Some(ref reader) = self.memory_reader {
+            reader.write_f64(address, value)
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::NotConnected,
+                "Process not attached",
+            ))
+        }
+    }
+
+    pub fn write_string(&self, address: usize, value: &str) -> Result<usize, std::io::Error> {
+        if let Some(ref reader) = self.memory_reader {
+            reader.write_string(address, value)
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::NotConnected,
+                "Process not attached",
+            ))
+        }
+    }
+
+    pub fn is_writable(&self, address: usize) -> Result<bool, std::io::Error> {
+        let regions = self.get_memory_regions()?;
+
+        for region in regions {
+            if address >= region.start_address && address < region.start_address + region.size {
+                return Ok(region.writable);
+            }
+        }
+
+        Ok(false)
+    }
+
+    pub fn safe_write_memory(&self, address: usize, data: &[u8]) -> Result<usize, std::io::Error> {
+        if !self.is_writable(address)? {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                "Memory region is not writable",
+            ));
+        }
+
+        self.write_memory(address, data)
     }
 
     pub fn get_memory_regions(&self) -> Result<Vec<MemoryRegion>, std::io::Error> {
