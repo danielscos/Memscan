@@ -218,5 +218,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
  ░                                                                ░
 ```
 
-**Memscan v0.1.0** - Built by Danielscos
-*High-performance memory scanning for the modern age*
+**Memscan v0.4.0** - Built by Danielscos
