@@ -1,9 +1,9 @@
 [package]
 name = "memscan"
-version = "0.1.0"
+version = "0.4.0"
 edition = "2024"
 authors = ["Danielscos <subtodanielscos10@gmail.com>"]
-description = "High-performance, cross-platform memory scanner"
+description = "High performance, cross platform memory scanner"
 default-run = "memscan"
 
 # Multiple binary configuration
@@ -21,6 +21,8 @@ fltk = "1"
 lazy_static = "1"
 thiserror = "1"
 hex = "0.4.3"
+libc = "0.2"
+nix = { version = "0.27", features = ["process", "signal", "uio"] }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = [

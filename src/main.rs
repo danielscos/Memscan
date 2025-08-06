@@ -36,7 +36,7 @@ fn main() {
     println!("   ./target/release/memscan-gui");
     println!("   ./run_memscan.sh  (with privilege handling)");
     println!();
-    println!("💻 CLI Version (Terminal):");
+    println!("    CLI Version (Terminal):");
     println!("   cargo run --bin memscan-cli --help");
     println!("   ./target/release/memscan-cli list");
     println!("   ./target/release/memscan-cli scan <PID> <VALUE> <TYPE>");

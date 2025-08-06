@@ -1,8 +1,8 @@
-
- .M"""bgd
-,MI    "Y
-`MMb.      ,p6"bo   ,6"Yb.  `7MMpMMMb.  `7MMpMMMb.  .gP"Ya `7Mb,od8
-  `YMMNq. 6M'  OO  8)   MM    MM    MM    MM    MM ,M'   Yb  MM' "'
-.     `MM 8M        ,pm9MM    MM    MM    MM    MM 8M""""""  MM
-Mb     dM YM.    , 8M   MM    MM    MM    MM    MM YM.    ,  MM
-P"Ybmmd"   YMbmd'  `Moo9^Yo..JMML  JMML..JMML  JMML.`Mbmmd'.JMML.
+ _____                                _           _
+|  __ \                              | |         | |
+| |  | | ___ _ __  _ __ ___  ___ __ _| |_ ___  __| |
+| |  | |/ _ \ '_ \| '__/ _ \/ __/ _` | __/ _ \/ _` |
+| |__| |  __/ |_) | | |  __/ (_| (_| | ||  __/ (_| |
+|_____/ \___| .__/|_|  \___|\___\__,_|\__\___|\__,_|
+            | |
+            |_|

@@ -1,6 +1,6 @@
 # Memscan
 
-**High-performance, cross-platform memory scanner built with Rust and FLTK**
+**High performance, cross-platform memory scanner built with Rust.**
 
 Memscan is a lightweight, efficient utility for scanning and analyzing the memory of live processes. Designed for reverse engineering, game modification, and security analysis, it maintains a strict memory footprint under 100MB while providing powerful memory inspection capabilities.
 
@@ -10,7 +10,7 @@ Memscan is a lightweight, efficient utility for scanning and analyzing the memor
 - **Memory-Optimized**: Custom allocator ensures <100MB RAM usage
 - **Real-Time Process Scanning**: Live process enumeration and attachment
 - **High-Performance Memory Access**: Platform-specific optimized memory APIs
-- **Lightweight GUI**: Built with FLTK for minimal resource usage
+- **Lightweight GUI**: GUI Built with FLTK for minimal resource usage, as well as a command-line interface.
 - **Value Search**: Find specific integers, floats, and strings in process memory
 - **Memory Region Analysis**: Inspect memory layouts and permissions
 
@@ -27,7 +27,7 @@ Memscan uses platform-specific APIs for optimal performance:
 ## Requirements
 
 ### Build Dependencies
-- **Rust** 1.70+ (2024 edition)
+- **Rust** 1.8+ (2024 edition)
 - **Cargo** package manager
 
 ### Platform-Specific Requirements
@@ -68,8 +68,6 @@ git clone https://github.com/yourusername/memscan.git
 cd memscan
 cargo build --release
 
-# Run with automatic privilege handling
-./run_memscan.sh
 ```
 
 ## Build Profiles
@@ -91,8 +89,6 @@ cargo build
 
 ### Basic Usage
 ```bash
-# Recommended: Use the helper script (handles privileges automatically)
-./run_memscan.sh
 
 # Alternative: Run directly (may need privileges for memory scanning)
 cargo run
@@ -128,18 +124,13 @@ memscan/
 │   ├── memory.rs               # Memory region handling
 │   ├── scanner.rs              # Value scanning algorithms
 │   └── utils.rs                # Helper functions
+│   └── bin/
+│       ├── memscan-cli.rs      # command-line interface
+│       └── memscan-gui.rs      # graphical user interface
 ├── Cargo.toml                  # Dependencies & build config
 ├── README.md                   # This file
 └── INSTALL.md                  # Detailed installation guide
 ```
-
-## Security & Legal Notice
-
-Memscan should only be used on:
-- ✅ Applications you own or develop
-- ✅ Systems you have explicit permission to analyze
-- ✅ Educational and research purposes
-- ✅ Security testing with proper authorization
 
 ## Development Status
 
@@ -149,7 +140,7 @@ Memscan should only be used on:
 | Process Attachment | ✅ | ❌️ | ❌️ | Implemented |
 | Memory Reading | ✅ | ❌️ | ❌️ | Implemented |
 | Value Scanning | ✅ | ❌️ | ❌️ | Implemented |
-| Memory Writing | ❌️ | ❌️ | ❌️ | In Development |
+| Memory Writing | ✅ | ❌️ | ❌️ | Implemented |
 
 ## Troubleshooting
 
@@ -177,9 +168,9 @@ For more troubleshooting, see [INSTALL.md](INSTALL.md#troubleshooting).
 
 ## Roadmap
 
-- [ ] **v0.2.0**: Complete memory reading implementation
-- [ ] **v0.3.0**: Add value filtering and scanning algorithms
-- [ ] **v0.4.0**: Memory writing capabilities
+- [x] **v0.2.0**: Complete memory reading implementation
+- [x] **v0.3.0**: Add value filtering and scanning algorithms
+- [x] **v0.4.0**: Memory writing capabilities
 - [ ] **v0.5.0**: Windows and macOS platform support
 - [ ] **v1.0.0**: Full cross-platform release
 
