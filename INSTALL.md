@@ -19,7 +19,6 @@ This guide provides detailed installation instructions for Memscan on all suppor
 ### Required
 - **Rust 1.70+** with Cargo
 - **Git** for cloning the repository
-- **C++ compiler** (for FLTK compilation)
 
 ### Install Rust
 ```bash
@@ -44,16 +43,6 @@ sudo apt update
 # Install dependencies
 sudo apt install -y \
     build-essential \
-    libfltk1.3-dev \
-    libx11-dev \
-    libxext-dev \
-    libxft-dev \
-    libxinerama-dev \
-    libxcursor-dev \
-    libxrender-dev \
-    libxfixes-dev \
-    libpng-dev \
-    libjpeg-dev \
     pkg-config
 
 # For process memory access
@@ -66,37 +55,14 @@ sudo apt install -y libc6-dev
 sudo pacman -Syu
 sudo pacman -S \
     base-devel \
-    fltk \
-    libx11 \
-    libxext \
-    libxft \
-    libxinerama \
-    libxcursor \
-    libxrender \
-    libxfixes \
-    libpng \
-    libjpeg-turbo
-
-# Development tools
-sudo pacman -S pkgconf
+    pkgconf
 ```
 
 #### Fedora/RHEL/CentOS
 ```bash
 # Install dependencies
 sudo dnf groupinstall "Development Tools"
-sudo dnf install -y \
-    fltk-devel \
-    libX11-devel \
-    libXext-devel \
-    libXft-devel \
-    libXinerama-devel \
-    libXcursor-devel \
-    libXrender-devel \
-    libXfixes-devel \
-    libpng-devel \
-    libjpeg-turbo-devel \
-    pkgconfig
+sudo dnf install -y pkgconfig
 ```
 
 #### Alpine Linux
@@ -106,16 +72,6 @@ sudo apk add \
     build-base \
     rust \
     cargo \
-    fltk-dev \
-    libx11-dev \
-    libxext-dev \
-    libxft-dev \
-    libxinerama-dev \
-    libxcursor-dev \
-    libxrender-dev \
-    libxfixes-dev \
-    libpng-dev \
-    jpeg-dev \
     pkgconfig
 ```
 
@@ -127,7 +83,6 @@ sudo apk add \
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Install dependencies
-brew install fltk
 brew install pkg-config
 
 # Install Xcode command line tools
@@ -137,7 +92,6 @@ xcode-select --install
 #### Using MacPorts
 ```bash
 # Install MacPorts dependencies
-sudo port install fltk +universal
 sudo port install pkgconfig
 ```
 
@@ -161,9 +115,7 @@ sudo port install pkgconfig
 # In MSYS2 terminal:
 pacman -S \
     mingw-w64-x86_64-gcc \
-    mingw-w64-x86_64-fltk \
-    mingw-w64-x86_64-pkg-config \
-    mingw-w64-x86_64-cmake
+    mingw-w64-x86_64-pkg-config
 
 # Add to PATH: C:\msys64\mingw64\bin
 ```
@@ -181,19 +133,19 @@ cd memscan
 #### Development Build (Fast compilation)
 ```bash
 cargo build
-./target/debug/memscan
+./target/debug/memscan-cli
 ```
 
 #### Release Build (Optimized)
 ```bash
 cargo build --release
-./target/release/memscan
+./target/release/memscan-cli
 ```
 
 #### Minimal Size Build (Ultra-optimized)
 ```bash
 cargo build --profile release-small
-./target/release-small/memscan
+./target/release-small/memscan-cli
 ```
 
 ### 3. Run Tests
@@ -213,14 +165,14 @@ cargo test test_process_enumeration
 ### Method 1: Direct Binary Usage
 ```bash
 # After building
-cp target/release/memscan ~/.local/bin/
+cp target/release/memscan-cli ~/.local/bin/
 # Or add target/release to your PATH
 ```
 
 ### Method 2: Cargo Install (Future)
 ```bash
 # Will be available when published to crates.io
-cargo install memscan
+cargo install memscan-cli
 ```
 
 ### Method 3: Package Managers (Future)
@@ -228,19 +180,19 @@ cargo install memscan
 #### Linux (APT)
 ```bash
 # Future Ubuntu/Debian package
-sudo apt install memscan
+sudo apt install memscan-cli
 ```
 
 #### macOS (Homebrew)
 ```bash
 # Future Homebrew formula
-brew install memscan
+brew install memscan-cli
 ```
 
 #### Windows (Scoop)
 ```bash
 # Future Scoop package
-scoop install memscan
+scoop install memscan-cli
 ```
 
 ## Post-Installation Setup
@@ -250,7 +202,7 @@ scoop install memscan
 #### Sudo Access
 ```bash
 # Run with sudo when needed
-sudo memscan
+sudo ./target/release/memscan-cli
 ```
 
 ### macOS Permissions
@@ -268,7 +220,7 @@ sudo memscan
 ### Windows Permissions
 ```bash
 # Run as Administrator for process access
-# Right-click memscan.exe -> "Run as administrator"
+# Right-click memscan-cli.exe -> "Run as administrator"
 
 # Or add to Windows Defender exclusions if antivirus blocks it
 ```
@@ -278,53 +230,49 @@ sudo memscan
 ### Test Installation
 ```bash
 # Check version
-memscan --version
+./target/release/memscan-cli --version
 
 # List available options
-memscan --help
+./target/release/memscan-cli --help
 
 # Test process enumeration (should show running processes)
-memscan
-# Click "List Processes" in GUI
+./target/release/memscan-cli list
 ```
 
 ### Performance Test
 ```bash
 # Run with memory monitoring
-RUST_LOG=debug memscan
+RUST_LOG=debug ./target/release/memscan-cli
 
 # Check memory usage stays under 100MB
-ps aux | grep memscan
+ps aux | grep memscan-cli
 ```
 
 ## Troubleshooting
 
 ### Build Issues
 
-#### FLTK Build Errors
+#### Missing Dependencies
 ```bash
-# Error: "fltk-config not found"
-# Solution: Install FLTK development packages
+# Error: "pkg-config not found"
+# Solution: Install pkg-config
 
 # Linux (Ubuntu/Debian)
-sudo apt install libfltk1.3-dev
+sudo apt install pkg-config
 
 # macOS
-brew install fltk
-
-# Check if fltk-config is in PATH
-which fltk-config
+brew install pkg-config
 ```
 
 #### Linker Errors
 ```bash
-# Error: "cannot find -lfltk"
-# Solution: Set PKG_CONFIG_PATH
+# Error: linker issues
+# Solution: Install build essentials
 
-# Linux
-export PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig
-# macOS (Homebrew)
-export PKG_CONFIG_PATH=/opt/homebrew/lib/pkgconfig
+# Linux (Ubuntu/Debian)
+sudo apt install build-essential
+# macOS
+xcode-select --install
 ```
 
 #### Missing C++ Compiler
@@ -355,10 +303,10 @@ cargo build --target x86_64-pc-windows-gnu --release
 ```bash
 # Linux: Process attachment fails
 # Solution 1: Use capabilities
-sudo setcap cap_sys_ptrace=eip ./target/release/memscan
+sudo setcap cap_sys_ptrace=eip ./target/release/memscan-cli
 
 # Solution 2: Run as root
-sudo ./target/release/memscan
+sudo ./target/release/memscan-cli
 
 # Solution 3: Adjust ptrace_scope
 echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
@@ -367,17 +315,12 @@ echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
 # Solution: Add to Developer Tools in Security & Privacy
 ```
 
-#### GUI Display Issues
+#### Terminal Display Issues
 ```bash
-# Error: "cannot connect to X server"
-# Linux (WSL/SSH)
-export DISPLAY=:0
-# Or use X11 forwarding
-ssh -X username@hostname
-
-# Error: "Wayland display issues"
-# Force X11 mode
-export GDK_BACKEND=x11
+# Error: Terminal display problems
+# Ensure terminal supports UTF-8
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 ```
 
 #### Memory Issues
@@ -387,7 +330,7 @@ export GDK_BACKEND=x11
 ps -o pid,ppid,cmd,%mem,%cpu --sort=-%mem
 
 # Verify memory optimization is working
-RUST_LOG=trace ./target/release/memscan 2>&1 | grep -i memory
+RUST_LOG=trace ./target/release/memscan-cli 2>&1 | grep -i memory
 ```
 
 ### Dependency Issues
@@ -405,14 +348,10 @@ rustc --version  # Should be 1.70+
 #### Missing System Libraries
 ```bash
 # Linux: Check for missing libraries
-ldd target/release/memscan
+ldd target/release/memscan-cli
 
-# Install missing libraries
-# Ubuntu/Debian
-sudo apt install libx11-6 libxext6 libxft2 libxinerama1
-
-# Arch Linux
-sudo pacman -S libx11 libxext libxft libxinerama
+# Install missing libraries if needed
+# Usually minimal dependencies for CLI version
 ```
 
 #### Conflicting Dependencies
@@ -432,10 +371,6 @@ cargo update
 
 #### Linux-Specific
 ```bash
-# AppImage creation (optional)
-cargo install cargo-appimage
-cargo appimage
-
 # systemd service restrictions
 sudo systemctl edit user@.service
 # Add: Environment="PATH=/usr/local/bin:/usr/bin:/bin"
@@ -447,7 +382,7 @@ setsebool -P allow_ptrace 1
 #### macOS-Specific
 ```bash
 # Code signing issues
-codesign --force --deep --sign - target/release/memscan
+codesign --force --deep --sign - target/release/memscan-cli
 
 # Gatekeeper bypass for development
 sudo spctl --master-disable
@@ -492,10 +427,6 @@ export PKG_CONFIG_ALLOW_CROSS=1
 max_usage_mb = 100
 track_allocations = true
 
-[gui]
-theme = "dark"
-window_size = [900, 650]
-
 [scanning]
 default_scan_type = "i32"
 max_results = 10000
@@ -538,7 +469,7 @@ cargo --version
 cargo build --verbose 2>&1 | tee build.log
 
 # Runtime information
-RUST_BACKTRACE=full RUST_LOG=debug ./target/release/memscan 2>&1 | tee runtime.log
+RUST_BACKTRACE=full RUST_LOG=debug ./target/release/memscan-cli 2>&1 | tee runtime.log
 ```
 
 ---

@@ -2,7 +2,7 @@
 
 **High performance, cross-platform memory scanner built with Rust.**
 
-Memscan is a lightweight, efficient utility for scanning and analyzing the memory of live processes. Designed for reverse engineering, game modification, and security analysis, it maintains a strict memory footprint under 100MB while providing powerful memory inspection capabilities.
+Memscan is a lightweight, efficient command-line utility for scanning and analyzing the memory of live processes. Designed for reverse engineering, game modification, and security analysis, it maintains a strict memory footprint under 100MB while providing powerful memory inspection capabilities.
 
 ## Features
 
@@ -10,7 +10,7 @@ Memscan is a lightweight, efficient utility for scanning and analyzing the memor
 - **Memory-Optimized**: Custom allocator ensures <100MB RAM usage
 - **Real-Time Process Scanning**: Live process enumeration and attachment
 - **High-Performance Memory Access**: Platform-specific optimized memory APIs
-- **Lightweight GUI**: GUI Built with FLTK for minimal resource usage, as well as a command-line interface.
+- **Command-Line Interface**: Efficient CLI for memory scanning and analysis
 - **Value Search**: Find specific integers, floats, and strings in process memory
 - **Memory Region Analysis**: Inspect memory layouts and permissions
 
@@ -89,29 +89,27 @@ cargo build
 
 ### Basic Usage
 ```bash
+# Run the CLI tool
+./target/release/memscan-cli
 
-# Alternative: Run directly (may need privileges for memory scanning)
-cargo run
+# Or run with automatic privilege handling
+./run_memscan.sh
 ```
 
 ### Memory Scanner Workflow
 1. **Start test target**: `./test_target` (in separate terminal)
-2. **Launch Memscan**: `./run_memscan.sh` (confirms privilege adjustment)
-3. **Click "List Processes"** to enumerate running processes
-4. **Select target process** from the list (e.g., "test_target")
-5. **Click "Attach"** to connect to the process
-6. **Enter value to search** in the input field
-7. **Select data type** (i32, i64, f32, f64, String)
-8. **Click "Start Scan"** to find memory addresses
+2. **Launch Memscan**: `./target/release/memscan-cli` (or use interactive mode)
+3. **List processes**: Use `list` command to enumerate running processes
+4. **Scan for values**: Use `scan <PID> <VALUE> <TYPE>` command
+5. **View results**: Memory addresses containing your value will be displayed
 
 ### Example: Finding a Value
 1. Start test target: `./test_target`
-2. Launch memscan: `./run_memscan.sh`
-3. Attach to "test_target" process
-4. Enter "12345" in the search field (known test value)
-5. Select "i32 (4 bytes)" as data type
-6. Click "Start Scan" - should find 1-2 matches
-7. Try other test values: "testplayer", "sword", "42.5"
+2. Launch memscan: `./target/release/memscan-cli`
+3. List processes: `list`
+4. Scan for value: `scan <PID> 12345 i32` (known test value)
+5. Should find 1-2 matches
+6. Try other test values: `scan <PID> testplayer string`
 
 ## Architecture
 
@@ -125,8 +123,7 @@ memscan/
 │   ├── scanner.rs              # Value scanning algorithms
 │   └── utils.rs                # Helper functions
 │   └── bin/
-│       ├── memscan-cli.rs      # command-line interface
-│       └── memscan-gui.rs      # graphical user interface
+│       └── memscan-cli.rs      # command-line interface
 ├── Cargo.toml                  # Dependencies & build config
 ├── README.md                   # This file
 └── INSTALL.md                  # Detailed installation guide
@@ -149,20 +146,16 @@ memscan/
 **"Permission denied" when attaching to process:**
 - Use the provided script: `./run_memscan.sh`
 - This temporarily adjusts system security settings safely
-- Or run with: `sudo -E env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY ./target/release/memscan`
+- Or run with: `sudo ./target/release/memscan-cli`
 
 **"No results found" during scanning:**
 - Ensure the test target is running: `./test_target`
 - Try scanning for known values: 12345, "testplayer", "sword"
 - Check that you're attached to the correct process
 
-**Build fails with FLTK errors:**
-- See [INSTALL.md](INSTALL.md) for platform-specific dependencies
-- Ensure you have a C++ compiler installed
-
-**GUI doesn't open with sudo:**
-- Use `./run_memscan.sh` instead (better approach)
-- This runs as regular user with temporary security adjustment
+**CLI permission issues:**
+- Use `./run_memscan.sh` for automatic privilege handling
+- Or run with: `sudo ./target/release/memscan-cli`
 
 For more troubleshooting, see [INSTALL.md](INSTALL.md#troubleshooting).
 

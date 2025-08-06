@@ -1,27 +1,18 @@
 # Memscan Usage Guide
 
-**High-performance, cross-platform memory scanner built with Rust and FLTK**
+**High-performance, cross-platform memory scanner built with Rust**
 
 ## Quick Start
 
-Memscan provides both graphical (GUI) and command-line (CLI) interfaces for memory scanning.
+Memscan provides a command-line interface for memory scanning.
 
-### 🖥️ GUI Mode (Recommended for beginners)
+### 💻 CLI Mode
 ```bash
-# Build and run GUI
-cargo build --release
-./run_memscan.sh
+# Interactive mode
+./target/release/memscan-cli
 
-# Or run directly (may need privileges)
-./target/release/memscan-gui
-```
-
-### 💻 CLI Mode (Great for scripting)
-```bash
-# List processes
+# One-shot commands
 ./target/release/memscan-cli list
-
-# Scan for value
 ./target/release/memscan-cli scan <PID> <VALUE> <TYPE>
 
 # Get help
@@ -33,13 +24,13 @@ cargo build --release
 ### Prerequisites
 ```bash
 # Ubuntu/Debian
-sudo apt install libfltk1.3-dev
+sudo apt install build-essential pkg-config
 
 # Arch Linux  
-sudo pacman -S fltk
+sudo pacman -S base-devel pkgconf
 
 # Fedora
-sudo dnf install fltk-devel
+sudo dnf install pkgconfig
 ```
 
 ### Build
@@ -49,7 +40,20 @@ cd memscan
 cargo build --release
 ```
 
-## GUI Usage
+## CLI Usage
+
+### Interactive Mode
+
+Start interactive mode for multiple commands:
+```bash
+./target/release/memscan-cli
+
+# Shows banner and system checks, then:
+memscan> list
+memscan> scan 1234 42 i32
+memscan> info 1234
+memscan> exit
+```
 
 ### Step-by-Step Walkthrough
 
@@ -58,36 +62,34 @@ cargo build --release
    ./test_target
    ```
 
-2. **Launch Memscan GUI**:
+2. **Launch Memscan CLI**:
    ```bash
-   ./run_memscan.sh  # Handles privileges automatically
+   ./target/release/memscan-cli  # Interactive mode
+   # Or with privileges: ./run_memscan.sh
    ```
 
 3. **List Processes**:
-   - Click "List Processes" button
-   - Use search box to filter (e.g., type "test_target")
+   ```bash
+   memscan> list
+   ```
 
-4. **Attach to Process**:
-   - Select process from list
-   - Click "Attach" button
+4. **Scan for Values**:
+   ```bash
+   memscan> scan <PID> 12345 i32
+   ```
 
-5. **Scan for Values**:
-   - Enter value in search field (e.g., "12345")
-   - Click data type button to cycle through types
-   - Click "Start Scan"
-
-6. **View Results**:
+5. **View Results**:
    - Results show memory addresses containing your value
    - Multiple results are normal (variables are copied in memory)
 
-### GUI Features
-- **Process filtering**: Search by name
+### CLI Features
+- **Interactive shell**: Run multiple commands without restarting
+- **One-shot mode**: Single commands for scripting
 - **Multiple data types**: i32, i64, f32, f64, strings
 - **Real-time memory usage**: Stays under 100MB
-- **Result management**: Clear and navigate results
-- **Status feedback**: Clear success/error messages
+- **System checks**: Automatic privilege and security verification
 
-## CLI Usage
+## Command Reference
 
 ### Commands Overview
 
@@ -226,11 +228,11 @@ cat /proc/sys/kernel/yama/ptrace_scope
 
 #### Option 2: Manual sudo
 ```bash
-# GUI (preserve display)
-sudo -E env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY ./target/release/memscan-gui
-
-# CLI (simpler)
+# CLI with sudo
 sudo ./target/release/memscan-cli scan 1234 42 i32
+
+# Interactive mode with sudo
+sudo ./target/release/memscan-cli
 ```
 
 #### Option 3: Temporary ptrace_scope Change
@@ -250,7 +252,7 @@ sudo sysctl kernel.yama.ptrace_scope=1
 ### Memory Usage
 - **Target**: <100MB RAM usage
 - **Actual**: Typically 1-5MB for small scans
-- **Monitoring**: Real-time usage displayed in GUI
+- **Monitoring**: Real-time usage displayed in CLI output
 
 ### Scan Limits
 - **Max results**: 10,000 per scan (prevents memory overflow)
@@ -300,26 +302,26 @@ memscan-cli scan 1234 42 i32    # Try integer
 memscan-cli scan 1234 42 f32    # Try float
 ```
 
-#### GUI doesn't open with sudo
+#### CLI permission issues
 ```bash
-# Use the helper script instead
+# Use the helper script for automatic privileges
 ./run_memscan.sh
 
-# Or properly preserve display
-sudo -E env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY ./target/release/memscan-gui
+# Or run with sudo directly
+sudo ./target/release/memscan-cli
 ```
 
-#### Build fails with FLTK errors
+#### Build fails with missing dependencies
 ```bash
-# Install FLTK development packages
+# Install required packages
 # Ubuntu/Debian:
-sudo apt install libfltk1.3-dev
+sudo apt install build-essential pkg-config
 
 # Arch Linux:
-sudo pacman -S fltk
+sudo pacman -S base-devel pkgconf
 
 # Fedora:
-sudo dnf install fltk-devel
+sudo dnf install pkgconfig
 ```
 
 ### Debug Mode
@@ -386,8 +388,8 @@ done
 ## Next Steps
 
 ### Learning Path
-1. **Start with GUI**: Understand basic concepts
-2. **Try CLI**: Learn command-line interface  
+1. **Start with CLI**: Learn the command-line interface
+2. **Try interactive mode**: Use persistent shell for efficiency
 3. **Use test_target**: Practice with known values
 4. **Real applications**: Scan actual programs
 5. **Advanced features**: Memory dumping, analysis
@@ -405,7 +407,7 @@ done
 git clone https://github.com/danielscos/memscan.git
 cd memscan
 cargo test
-cargo run --bin memscan-gui
+cargo run --bin memscan-cli
 
 # See CONTRIBUTING.md for guidelines
 ```
