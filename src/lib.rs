@@ -2,7 +2,7 @@
 
 pub mod memory;
 pub mod memory_optimization;
-
+pub mod monitor;
 pub mod process;
 pub mod scanner;
 
