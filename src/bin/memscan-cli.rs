@@ -951,8 +951,8 @@ fn cmd_start_monitor(args: &[String]) {
     println!(" Process: {} (PID: {})", process.name, pid);
     println!();
     println!(" NEXT STEPS:");
-    println!("  1️⃣  Add watch targets: 'watch <address> <type> <name>'");
-    println!("  2️⃣  Changes to the watch targets will appear automatically.");
+    println!("  1️  Add watch targets: 'watch <address> <type> <name>'");
+    println!("  2  Changes to the watch targets will appear automatically.");
     println!();
     println!(" QUICK OPTIONS:");
     println!(
